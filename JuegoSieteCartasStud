@@ -1,0 +1,108 @@
+import java.util.*;
+
+public class JuegoSieteCartasStud extends JuegoPoker {
+    private int pozo;
+
+    public JuegoSieteCartasStud(List<Jugador> jugadores) {
+        super(jugadores);
+        this.pozo = 0;
+    }
+
+    @Override
+    public void jugar() {
+        repartirCartas();
+        for (int ronda = 3; ronda <= 7; ronda++) {
+            mostrarCartasVisibles();
+            gestionarApuestas();
+            repartirUnaCarta(ronda == 7); 
+        }
+        evaluarGanador();
+    }
+
+    @Override
+    protected void repartirCartas() {
+
+        for (Jugador j : jugadores) {
+            List<Carta> cartas = baraja.repartir(3);
+
+            j.recibirCartas(new ArrayList<>()); 
+            j.agregarCarta(new CartaOculta(cartas.get(0))); 
+            j.agregarCarta(new CartaOculta(cartas.get(1))); 
+            j.agregarCarta(new CartaVisible(cartas.get(2))); 
+        }
+    }
+
+    private void repartirUnaCarta(boolean esUltimaOculta) {
+        for (Jugador j : jugadores) {
+            if (!j.estaRetirado()) {
+                Carta carta = baraja.repartir(1).get(0);
+                if (esUltimaOculta) {
+                    j.agregarCarta(new CartaOculta(carta));
+                } else {
+                    j.agregarCarta(new CartaVisible(carta));
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void gestionarApuestas() {
+        int apuesta = 10;
+        for (Jugador j : jugadores) {
+            if (!j.estaRetirado()) {
+                if (j.esHumano()) {
+                    Scanner sc = new Scanner(System.in);
+                    System.out.println("\n" + j.getNombre() + ", tienes " + j.getFichas() + " fichas.");
+                    System.out.print("¿Quieres igualar (" + apuesta + ") o retirarte? (i/r): ");
+                    String decision = sc.nextLine();
+                    if (decision.equalsIgnoreCase("i")) {
+                        pozo += j.apostar(apuesta);
+                    } else {
+                        j.retirarse();
+                    }
+                } else {
+
+                    if (j.getFichas() >= apuesta) {
+                        pozo += j.apostar(apuesta);
+                    } else {
+                        j.retirarse();
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void evaluarGanador() {
+        List<Jugador> enJuego = new ArrayList<>();
+        for (Jugador j : jugadores) {
+            if (!j.estaRetirado()) {
+                j.mostrarMano();
+                enJuego.add(j);
+            }
+        }
+
+        Jugador ganador = EvaluadorMano.determinarGanador(enJuego);
+        if (ganador != null) {
+            System.out.println("\n¡" + ganador.getNombre() + " gana el pozo de " + pozo + " fichas!");
+            ganador.ganarFichas(pozo);
+        } else {
+            System.out.println("Ningún jugador válido.");
+        }
+
+        for (Jugador j : jugadores) {
+            j.reiniciarRonda();
+        }
+        pozo = 0;
+    }
+
+    private void mostrarCartasVisibles() {
+        System.out.println("\n=== Cartas visibles de los jugadores ===");
+        for (Jugador j : jugadores) {
+            if (!j.estaRetirado()) {
+                j.mostrarCartasVisibles();
+            }
+        }
+        System.out.println("========================================");
+    }
+}
