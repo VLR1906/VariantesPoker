@@ -101,4 +101,40 @@ public class Jugador {
     public void ganarFichas(int cantidad) {
         fichas += cantidad;
     }
+
+    //seven card stud
+
+    
+public void agregarCarta(Carta carta) {
+    mano.add(carta);
+}
+
+
+public List<Carta> getCartasVisibles() {
+    List<Carta> visibles = new ArrayList<>();
+    for (Carta c : mano) {
+        if (c.esVisible()) {
+            visibles.add(c);
+        }
+    }
+    return visibles;
+}
+
+
+public void mostrarMano() {
+    System.out.println("Cartas de " + nombre + ":");
+    for (Carta c : mano) {
+        System.out.println(c);
+    }
+}
+
+
+public void mostrarCartasVisibles() {
+    System.out.println("Cartas visibles de " + nombre + ":");
+    for (Carta c : mano) {
+        if (c.esVisible()) {
+            System.out.println(c);
+        }
+    }
+}
 }
