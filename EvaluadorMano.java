@@ -72,5 +72,56 @@ public class EvaluadorMano {
 
         return valores.get(4); // Carta alta
     }
+
+        public static int evaluarMejorManoDeSiete(List<Carta> cartas) {
+        List<List<Carta>> combinaciones = obtenerCombinacionesDe5(cartas);
+        int mejorPuntaje = -1;
+
+        for (List<Carta> combinacion : combinaciones) {
+            int puntuacion = evaluarMano(combinacion);
+            if (puntuacion > mejorPuntaje) {
+                mejorPuntaje = puntuacion;
+            }
+        }
+
+        return mejorPuntaje;
+    }
+    //seven card stud
+
+    public static Jugador determinarGanadorSieteCartas(List<Jugador> jugadores) {
+        Jugador ganador = null;
+        int mejorPuntaje = -1;
+
+        for (Jugador j : jugadores) {
+            List<Carta> cartasVisibles = j.getMano(); 
+            int puntuacion = evaluarMejorManoDeSiete(cartasVisibles);
+
+            if (puntuacion > mejorPuntaje) {
+                mejorPuntaje = puntuacion;
+                ganador = j;
+            }
+        }
+
+        return ganador;
+    }
+
+    private static List<List<Carta>> obtenerCombinacionesDe5(List<Carta> cartas) {
+        List<List<Carta>> resultado = new ArrayList<>();
+        combinar(cartas, 0, new ArrayList<>(), resultado);
+        return resultado;
+    }
+
+    private static void combinar(List<Carta> cartas, int inicio, List<Carta> actual, List<List<Carta>> resultado) {
+        if (actual.size() == 5) {
+            resultado.add(new ArrayList<>(actual));
+            return;
+        }
+
+        for (int i = inicio; i < cartas.size(); i++) {
+            actual.add(cartas.get(i));
+            combinar(cartas, i + 1, actual, resultado);
+            actual.remove(actual.size() - 1);
+        }
+    }
 }
 
