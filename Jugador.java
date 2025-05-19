@@ -8,11 +8,12 @@ public class Jugador {
     private int apuestaActual;
     private boolean retirado;
 
+
     public Jugador(String nombre, boolean humano) {
         this.nombre = nombre;
         this.humano = humano;
         this.mano = new ArrayList<>();
-        this.fichas = 100; // fichas iniciales
+        this.fichas = 100;
         this.apuestaActual = 0;
         this.retirado = false;
     }
@@ -24,7 +25,6 @@ public class Jugador {
 
     public void cambiarCartas(Baraja baraja, Scanner scanner) {
         if (!humano || retirado) {
-            // Bot cambia aleatoriamente 1 o 2 cartas
             Random r = new Random();
             int cambios = r.nextInt(3);
             for (int i = 0; i < cambios; i++) {
@@ -38,7 +38,7 @@ public class Jugador {
             }
             System.out.print("¿Cuántas cartas deseas cambiar? (0-5): ");
             int cantidad = scanner.nextInt();
-            scanner.nextLine(); // limpia buffer
+            scanner.nextLine();
 
             for (int i = 0; i < cantidad; i++) {
                 System.out.print("Número de carta a cambiar (1-5): ");
@@ -72,8 +72,6 @@ public class Jugador {
         retirado = false;
     }
 
-    // Getters
-
     public String getNombre() {
         return nombre;
     }
@@ -102,39 +100,41 @@ public class Jugador {
         fichas += cantidad;
     }
 
+
     //seven card stud
 
-    
-public void agregarCarta(Carta carta) {
-    mano.add(carta);
-}
+
+    public void agregarCarta(Carta carta) {
+        mano.add(carta);
+    }
 
 
-public List<Carta> getCartasVisibles() {
-    List<Carta> visibles = new ArrayList<>();
-    for (Carta c : mano) {
-        if (c.esVisible()) {
-            visibles.add(c);
+    public List<Carta> getCartasVisibles() {
+        List<Carta> visibles = new ArrayList<>();
+        for (Carta c : mano) {
+            if (c.esVisible()) {
+                visibles.add(c);
+            }
         }
+        return visibles;
     }
-    return visibles;
-}
 
 
-public void mostrarMano() {
-    System.out.println("Cartas de " + nombre + ":");
-    for (Carta c : mano) {
-        System.out.println(c);
-    }
-}
-
-
-public void mostrarCartasVisibles() {
-    System.out.println("Cartas visibles de " + nombre + ":");
-    for (Carta c : mano) {
-        if (c.esVisible()) {
+    public void mostrarMano() {
+        System.out.println("Cartas de " + nombre + ":");
+        for (Carta c : mano) {
             System.out.println(c);
         }
     }
+
+
+    public void mostrarCartasVisibles() {
+        System.out.println("Cartas visibles de " + nombre + ":");
+        for (Carta c : mano) {
+            if (c.esVisible()) {
+                System.out.println(c);
+            }
+        }
+    }
 }
-}
+

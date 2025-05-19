@@ -2,6 +2,12 @@ import java.util.*;
 
 public class EvaluadorMano {
     private static final Map<String, Integer> valorCarta = new HashMap<>();
+    private int base;
+    private int kicker;
+    int puntuacion = base + kicker;
+    private static String ultimaCombinacion = "";
+
+
 
     static {
         valorCarta.put("2", 2);
@@ -24,15 +30,23 @@ public class EvaluadorMano {
         int mejorPuntaje = -1;
 
         for (Jugador j : jugadores) {
-            int puntuacion = evaluarMano(j.getMano());
+            int puntuacion = evaluarMano(j.getMano()); // Usamos el método que ya tienes
             if (puntuacion > mejorPuntaje) {
                 mejorPuntaje = puntuacion;
                 ganador = j;
             }
         }
 
+        if (ganador != null) {
+            System.out.println("El jugador " + ganador.getNombre() +
+                    " ganó la partida con: " + ultimaCombinacion);
+        }
+
         return ganador;
     }
+
+
+
 
     public static int evaluarMano(List<Carta> mano) {
         Map<String, Integer> valorCount = new HashMap<>();
@@ -61,19 +75,49 @@ public class EvaluadorMano {
         boolean trio = valorCount.containsValue(3);
         long pares = valorCount.values().stream().filter(v -> v == 2).count();
 
-        if (escalera && color) return 800 + valores.get(4); // Escalera de color
-        if (poker) return 700;
-        if (fullHouse) return 600;
-        if (color) return 500;
-        if (escalera) return 400;
-        if (trio) return 300;
-        if (pares == 2) return 200;
-        if (pares == 1) return 100;
+        if (escalera && color) {
+            ultimaCombinacion = "escalera de color";
+            return 800 + valores.get(4);
+        }
+        if (poker) {
+            ultimaCombinacion = "póker";
+            return 700;
+        }
+        if (fullHouse) {
+            ultimaCombinacion = "full house";
+            return 600;
+        }
+        if (color) {
+            ultimaCombinacion = "color";
+            return 500;
+        }
+        if (escalera) {
+            ultimaCombinacion = "escalera";
+            return 400;
+        }
+        if (trio) {
+            ultimaCombinacion = "trío";
+            return 300;
+        }
+        if (pares == 2) {
+            ultimaCombinacion = "doble par";
+            return 200;
+        }
+        if (pares == 1) {
+            ultimaCombinacion = "un par";
+            return 100;
+        }
 
-        return valores.get(4); // Carta alta
+        ultimaCombinacion = "carta alta";
+        return valores.get(4);
     }
 
-        public static int evaluarMejorManoDeSiete(List<Carta> cartas) {
+
+    public static String getUltimaCombinacion() {
+        return ultimaCombinacion;
+    }
+
+    public static int evaluarMejorManoDeSiete(List<Carta> cartas) {
         List<List<Carta>> combinaciones = obtenerCombinacionesDe5(cartas);
         int mejorPuntaje = -1;
 
@@ -93,7 +137,7 @@ public class EvaluadorMano {
         int mejorPuntaje = -1;
 
         for (Jugador j : jugadores) {
-            List<Carta> cartasVisibles = j.getMano(); 
+            List<Carta> cartasVisibles = j.getMano();
             int puntuacion = evaluarMejorManoDeSiete(cartasVisibles);
 
             if (puntuacion > mejorPuntaje) {
@@ -123,5 +167,9 @@ public class EvaluadorMano {
             actual.remove(actual.size() - 1);
         }
     }
+
+
+
+
 }
 

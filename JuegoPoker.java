@@ -17,4 +17,3 @@ public abstract class JuegoPoker {
 
     protected abstract void evaluarGanador();
 }
-
