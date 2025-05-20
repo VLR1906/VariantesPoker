@@ -1,6 +1,13 @@
 public class CartaOculta extends Carta {
+    private Carta original;
+
     public CartaOculta(Carta original) {
         super(original.getValor(), original.getPalo());
+        this.original = original;
+    }
+
+    public Carta getOriginal() {
+        return original;
     }
 
     @Override
@@ -12,4 +19,5 @@ public class CartaOculta extends Carta {
     public String toString() {
         return "[Carta oculta]";
     }
+
 }
