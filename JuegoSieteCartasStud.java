@@ -40,6 +40,11 @@ public class JuegoSieteCartasStud extends JuegoPoker {
             gestionarApuestas();
         } else {
             evaluarGanador();
+            for (Jugador j : jugadores) {
+                for (Carta c : j.getCartas()) {
+                    c.setVisible(true);
+                }
+            }
             observer.actualizarCartas(jugadores);
             rondasJugadas++;
 
@@ -120,6 +125,7 @@ public class JuegoSieteCartasStud extends JuegoPoker {
         List<Jugador> enJuego = new ArrayList<>();
         for (Jugador j : jugadores) {
             if (!j.estaRetirado()) {
+                j.revelarCartas();
                 j.mostrarMano();
                 enJuego.add(j);
             }
