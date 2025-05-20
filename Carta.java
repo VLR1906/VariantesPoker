@@ -1,11 +1,18 @@
+import java.text.Normalizer;
+
 public class Carta {
     private String valor;
     private String palo;
     private boolean visible;
 
     public Carta(String valor, String palo) {
+        this(valor, palo, true);
+    }
+
+    public Carta(String valor, String palo, boolean visible) {
         this.valor = valor;
         this.palo = palo;
+        this.visible = visible;
     }
 
     public String getValor() {
@@ -16,16 +23,6 @@ public class Carta {
         return palo;
     }
 
-    public String getNombreArchivo() {
-        return valor + "_de_" + palo;
-    }
-    public class UtilCarta {
-        public static String obtenerRutaImagen(Carta carta) {
-            String valor = carta.getValor().toLowerCase();
-            String palo = carta.getPalo().toLowerCase(); // "corazones", "picas", etc.
-            return "imagenes/" + valor + "_" + palo + ".png";
-        }
-    }
     public boolean esVisible() {
         return visible;
     }
@@ -35,12 +32,30 @@ public class Carta {
     }
 
 
-
     @Override
     public String toString() {
         return (visible ? valor + " de " + palo : "Carta Oculta");
-
     }
 
+    public String getNombreArchivo() {
+        String valorFormateado;
+        switch (valor.toUpperCase()) {
+            case "A": valorFormateado = "as"; break;
+            case "J": valorFormateado = "jota"; break;
+            case "Q": valorFormateado = "reina"; break;
+            case "K": valorFormateado = "rey"; break;
+            default:  valorFormateado = valor.toLowerCase();
+        }
+
+
+        String paloNormalizado = normalizarTexto(palo.toLowerCase());
+
+        return valorFormateado + "_" + paloNormalizado + ".png";
+    }
+    private String normalizarTexto(String texto) {
+        return Normalizer.normalize(texto, Normalizer.Form.NFD)
+                .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "")
+                .replace("ñ", "n");
+    }
 }
 
