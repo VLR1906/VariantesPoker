@@ -139,6 +139,14 @@ public class Jugador {
             }
         }
     }
+    public void revelarCartas() {
+        for (int i = 0; i < mano.size(); i++) {
+            Carta c = mano.get(i);
+            if (c instanceof CartaOculta) {
+                mano.set(i, ((CartaOculta) c).getOriginal());
+            }
+        }
+    }
 
     public Carta[] getCartas() {
         return mano.toArray(new Carta[0]);
