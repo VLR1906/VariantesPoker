@@ -3,6 +3,8 @@ import java.util.List;
 
 public class EvaluadorMano {
     public static final Map<String, Integer> valorCarta = new HashMap<>();
+    private static String ultimaCombinacion = "";
+
 
     static {
         valorCarta.put("2", 2);
@@ -25,15 +27,17 @@ public class EvaluadorMano {
         int mejorPuntaje = -1;
 
         for (Jugador j : jugadores) {
-            int puntuacion = evaluarMano(j.getMano());
+            int puntuacion = evaluarMano(j.getMano()); // Usamos el método que ya tienes
             if (puntuacion > mejorPuntaje) {
                 mejorPuntaje = puntuacion;
                 ganador = j;
             }
         }
 
+
         return ganador;
     }
+
 
     public static int evaluarMano(List<Carta> mano) {
         Map<String, Integer> valorCount = new HashMap<>();
@@ -70,8 +74,13 @@ public class EvaluadorMano {
         if (trio) return 300;
         if (pares == 2) return 200;
         if (pares == 1) return 100;
+        return valores.get(4);
+    }
 
-        return valores.get(4); // Carta alta
+
+
+    public static String getUltimaCombinacion() {
+        return ultimaCombinacion;
     }
 
     public static int evaluarMejorManoDeSiete(List<Carta> cartas) {
@@ -105,6 +114,26 @@ public class EvaluadorMano {
 
         return ganador;
     }
+
+    private static List<List<Carta>> obtenerCombinacionesDe5(List<Carta> cartas) {
+        List<List<Carta>> resultado = new ArrayList<>();
+        combinar(cartas, 0, new ArrayList<>(), resultado);
+        return resultado;
+    }
+
+    private static void combinar(List<Carta> cartas, int inicio, List<Carta> actual, List<List<Carta>> resultado) {
+        if (actual.size() == 5) {
+            resultado.add(new ArrayList<>(actual));
+            return;
+        }
+
+        for (int i = inicio; i < cartas.size(); i++) {
+            actual.add(cartas.get(i));
+            combinar(cartas, i + 1, actual, resultado);
+            actual.remove(actual.size() - 1);
+        }
+    }
+
     private static int obtenerValor(String valor) {
         return valorCarta.getOrDefault(valor, 0);
     }
@@ -133,24 +162,5 @@ public class EvaluadorMano {
         return 0;
     }
 
-
-    private static List<List<Carta>> obtenerCombinacionesDe5(List<Carta> cartas) {
-        List<List<Carta>> resultado = new ArrayList<>();
-        combinar(cartas, 0, new ArrayList<>(), resultado);
-        return resultado;
-    }
-
-    private static void combinar(List<Carta> cartas, int inicio, List<Carta> actual, List<List<Carta>> resultado) {
-        if (actual.size() == 5) {
-            resultado.add(new ArrayList<>(actual));
-            return;
-        }
-
-        for (int i = inicio; i < cartas.size(); i++) {
-            actual.add(cartas.get(i));
-            combinar(cartas, i + 1, actual, resultado);
-            actual.remove(actual.size() - 1);
-        }
-    }
 }
 

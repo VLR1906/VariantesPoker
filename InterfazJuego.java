@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class InterfazJuego extends JFrame {
@@ -12,21 +13,29 @@ public class InterfazJuego extends JFrame {
     private JButton apostarBtn, igualarBtn, retirarseBtn, cambiarCartasBtn, siguienteBtn;
     private JTextField apuestaField;
     private Baraja baraja;
+    private CincoCartasDraw cincoCartasDraw;
     private boolean faseCambio = false;
     private boolean rondaTerminada = false;
+    private int bote = 0;
+    private int ronda = 1; // 1 = ronda a ciegas, 2 = ronda con cartas visibles
     private int apuestaMaxima = 0;
-
+    private ImageIcon imagenReverso = new ImageIcon("C:\\Users\\victo\\IdeaProjects\\VariantesDePoker\\src\\imagenes\\reverso.png");
 
     public InterfazJuego(List<Jugador> jugadores) {
         this.jugadores = jugadores;
         this.baraja = new Baraja();
+        inicializarJugadores(); // ya los tienes
+        this.cincoCartasDraw = new CincoCartasDraw(jugadores);
         inicializarJugadores();
         configurarVentana();
         mostrarInformacionJugador();
+        mostrarMensaje("Primera ronda de apuestas. No se muestran cartas.");
+        cambiarCartasBtn.setEnabled(false);
+
 
     }
 
-    private void inicializarJugadores() {
+    public void inicializarJugadores() {
         for (Jugador j : jugadores) {
             j.reiniciarRonda();
             j.recibirCartas(baraja.repartir(5));
@@ -62,7 +71,7 @@ public class InterfazJuego extends JFrame {
         cambiarCartasBtn = new JButton("Cambiar Cartas");
         siguienteBtn = new JButton("Siguiente");
         apuestaField = new JTextField(6);
-        Dimension campoDimension = new Dimension(80, 20);  // más angosto y bajo
+        Dimension campoDimension = new Dimension(150, 30);  // más angosto y bajo
         apuestaField.setMaximumSize(campoDimension);
         apuestaField.setPreferredSize(campoDimension);
 
@@ -88,7 +97,6 @@ public class InterfazJuego extends JFrame {
 
         add(controlesPanel);
 
-// 🔽 Agrega esto justo aquí
         String[] combinaciones = {
                 "     Par", "     Doble Par", "     Tercia", "     Escalera", "     Color",
                 "     Full House", "     Póker", "     Escalera de color", "     Escalera real"
@@ -100,7 +108,7 @@ public class InterfazJuego extends JFrame {
         combinacionesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         JScrollPane combinacionesScroll = new JScrollPane(combinacionesList);
-        combinacionesScroll.setBounds(680, 20, 180, 200); // parte superior derecha
+        combinacionesScroll.setBounds(680, 20, 180, 150); // parte superior derecha
         add(combinacionesScroll);
 
 
@@ -120,19 +128,23 @@ public class InterfazJuego extends JFrame {
     }
 
 
-    private JButton crearBoton(String texto, int y) {
-        JButton btn = new JButton(texto);
-        btn.setBounds(60, 400 + y - 60, 140, 30);
-        return btn;
-    }
-
-    private void mostrarInformacionJugador() {
+    public void mostrarInformacionJugador() {
         jugadorActual = jugadores.get(indiceJugador);
         turnoLabel.setText("Turno de: " + jugadorActual.getNombre());
+        turnoLabel.setFont(new Font("Arial", Font.BOLD, 30)); // Cambiar tamaño a 20
+
         dineroLabel.setText("Fichas: $" + jugadorActual.getFichas());
-        mostrarCartas();
+        dineroLabel.setFont(new Font("Arial", Font.PLAIN, 20)); // Cambiar tamaño a 18
+
+        if (ronda == 2) {
+            mostrarCartas();
+        } else {
+            ocultarCartas();
+        }
+
         actualizarBotones();
     }
+
 
     private void mostrarCartas() {
         cartasPanel.removeAll();
@@ -154,13 +166,23 @@ public class InterfazJuego extends JFrame {
         cartasPanel.repaint();
     }
 
+    private void ocultarCartas() {
+        cartasPanel.removeAll();
+        for (int i = 0; i < 5; i++) {
+            ImageIcon icon = new ImageIcon("C:\\Users\\victo\\IdeaProjects\\VariantesDePoker\\src\\imagenes\\reverso.png"); // Usa una imagen de carta oculta
+            Image image = icon.getImage().getScaledInstance(70, 100, Image.SCALE_SMOOTH);
+            JLabel cartaLabel = new JLabel(new ImageIcon(image));
+            cartasPanel.add(cartaLabel);
+        }
+        cartasPanel.revalidate();
+        cartasPanel.repaint();
+    }
+
+
 
     private void actualizarBotones() {
         boolean activo = !jugadorActual.estaRetirado();
-        apostarBtn.setEnabled(activo && !faseCambio);
-        igualarBtn.setEnabled(activo && !faseCambio);
         retirarseBtn.setEnabled(activo);
-        cambiarCartasBtn.setEnabled(activo && faseCambio);
         siguienteBtn.setEnabled(true);
     }
 
@@ -204,15 +226,14 @@ public class InterfazJuego extends JFrame {
     private void realizarApuesta() {
         try {
             int cantidad = Integer.parseInt(apuestaField.getText());
+            Jugador jugadorActual = jugadores.get(indiceJugador);
 
-            if (cantidad <= jugadorActual.getFichas() && cantidad > apuestaMaxima) {
-                int diferencia = cantidad - jugadorActual.getApuestaActual();
-                jugadorActual.apostar(diferencia);
-                apuestaMaxima = cantidad;
-                mostrarMensaje("Has subido la apuesta a $" + cantidad);
-                siguienteJugador();
-            } else {
-                mostrarMensaje("La apuesta debe ser mayor que la actual (" + apuestaMaxima + ") y menor o igual a tus fichas.");
+            String resultado = cincoCartasDraw.realizarApuesta(jugadorActual, cantidad);
+            mostrarMensaje(resultado);
+
+            if (resultado.startsWith("Apostaste")) {
+                mostrarInformacionJugador(); // si usas un método para actualizar la vista
+                siguienteJugador();   // o avanzarTurno()
             }
         } catch (NumberFormatException ex) {
             mostrarMensaje("Ingresa una cantidad válida.");
@@ -220,59 +241,102 @@ public class InterfazJuego extends JFrame {
     }
 
 
-    private void igualarApuesta() {
-        int diferencia = apuestaMaxima - jugadorActual.getApuestaActual();
 
-        if (diferencia > 0 && diferencia <= jugadorActual.getFichas()) {
-            jugadorActual.apostar(diferencia);
-            mostrarMensaje("Has igualado con $" + apuestaMaxima);
-        } else if (diferencia == 0) {
-            mostrarMensaje("Ya has igualado la apuesta.");
+
+    private void igualarApuesta() {
+        Jugador jugadorActual = jugadores.get(indiceJugador);
+
+        if (cincoCartasDraw.igualarApuesta(jugadorActual)) {
+            mostrarMensaje("Has igualado la apuesta.");
+            mostrarInformacionJugador();
+            actualizarBote(); // <-- agrega esto
+            siguienteJugador();
         } else {
             mostrarMensaje("No tienes suficientes fichas para igualar.");
         }
-
-        siguienteJugador();
     }
+    private void actualizarBote() {
+        Label boteLabel = new Label();
+        boteLabel.setText("Bote: $" + cincoCartasDraw.getBote());
+    }
+
+
+
+
 
 
     private void cambiarCartas() {
-        List<Carta> mano = jugadorActual.getMano();
+        mostrarCartas();
+
         String entrada = JOptionPane.showInputDialog(this, "¿Qué cartas cambiar? (ej: 1,3,5)");
         if (entrada != null && !entrada.trim().isEmpty()) {
             String[] indices = entrada.split(",");
+            List<Integer> indicesACambiar = new ArrayList<>();
+
             for (String s : indices) {
                 try {
-                    int pos = Integer.parseInt(s.trim()) - 1;
-                    if (pos >= 0 && pos < mano.size()) {
-                        mano.set(pos, baraja.repartir(1).get(0));
-                    }
-                } catch (Exception ignored) {}
+                    int pos = Integer.parseInt(s.trim()) - 1; // el jugador usa 1-based, internamente usamos 0-based
+                    indicesACambiar.add(pos);
+                } catch (NumberFormatException ignored) {
+                    // O puedes mostrar un error si prefieres
+                }
             }
+
+            // Llama al método de la clase lógica
+            cincoCartasDraw.cambiarCartas(jugadorActual, indicesACambiar);
+
+            mostrarCartas();  // Mostrar cartas actualizadas
+            JOptionPane.showMessageDialog(this, "Cartas cambiadas. Presiona 'Siguiente' para continuar.");
         }
-
-        mostrarCartas();  // Mostrar cartas actualizadas
-
-        // Ahora mostramos mensaje SIN avanzar de inmediato
-        JOptionPane.showMessageDialog(this, "Cartas cambiadas. Presiona 'Siguiente' para continuar.");
-
-        cambiarCartasBtn.setEnabled(false);  // Ya no puede volver a cambiar
     }
 
 
+
     private void siguienteJugador() {
-        if (rondaTerminada) {
-            mostrarGanador();
-            return;
+        indiceJugador++;
+
+        // Saltar jugadores retirados
+        while (indiceJugador < jugadores.size() && jugadores.get(indiceJugador).estaRetirado()) {
+            indiceJugador++;
         }
 
-        indiceJugador++;
         if (indiceJugador >= jugadores.size()) {
-            if (!faseCambio) {
-                faseCambio = true;
+            if (ronda == 1) {
+
+                // Pasar a segunda ronda de apuestas: cartas visibles
+                ronda = 2;
                 indiceJugador = 0;
-                mostrarMensaje("Comienza la fase de cambio de cartas.");
+                while (indiceJugador < jugadores.size() && jugadores.get(indiceJugador).estaRetirado()) {
+                    indiceJugador++;
+                }
+
+                mostrarMensaje("Cartas reveladas. Segunda ronda de apuestas.");
+                mostrarCartas(); // ahora sí se ven
+                apostarBtn.setEnabled(true);
+                igualarBtn.setEnabled(true);
+                cambiarCartasBtn.setEnabled(false);
+            } else if (ronda == 2) {
+                // Pasar a ronda de cambio de cartas
+                ronda = 3;
+                indiceJugador = 0;
+                while (indiceJugador < jugadores.size() && jugadores.get(indiceJugador).estaRetirado()) {
+                    indiceJugador++;
+                }
+
+                cambiarCartasBtn.setEnabled(true);
+                apostarBtn.setEnabled(false);
+                igualarBtn.setEnabled(false);
+                retirarseBtn.setEnabled(true);
+                mostrarCartas();
+
+                mostrarMensaje("Ronda de cambio de cartas. Cada jugador puede cambiar cartas.");
+
+                // NO llames cambiarCartas() aquí. Espera a que el jugador presione el botón para cambiar.
+
+                mostrarCartas(); // Mostrar cartas del jugador actual
+
             } else {
+                // Después de la ronda de cambio, termina el juego y se muestra ganador
                 rondaTerminada = true;
                 mostrarGanador();
                 return;
@@ -282,30 +346,29 @@ public class InterfazJuego extends JFrame {
         mostrarInformacionJugador();
     }
 
+
+
+
     private void mostrarGanador() {
-        Jugador ganador = EvaluadorMano.determinarGanador(jugadores);
-        ganador.ganarFichas(jugadores.stream().mapToInt(Jugador::getApuestaActual).sum());
+        int boteGanado = cincoCartasDraw.getBote(); // Obtener el monto antes de reiniciar
+        Jugador ganador = cincoCartasDraw.entregarBoteAlGanador();
+        cincoCartasDraw.reiniciarBote(); // Ahora sí lo reinicias
 
-        // Obtener la combinación ganadora desde EvaluadorMano
-        String combinacion = EvaluadorMano.getUltimaCombinacion();
-
-        // Mostrar la mano gráficamente en el cartasPanel
-        cartasPanel.removeAll();
-        cartasPanel.setLayout(new FlowLayout());
-
-        for (Carta carta : ganador.getMano()) {
-            String nombreArchivo = carta.getNombreArchivo() + ".png";
-            ImageIcon icon = new ImageIcon("C:\\Users\\victo\\IdeaProjects\\VariantesDePoker\\src\\imagenes\\" + nombreArchivo);
-            Image image = icon.getImage().getScaledInstance(70, 100, Image.SCALE_SMOOTH);
-            JLabel cartaLabel = new JLabel(new ImageIcon(image));
-            cartasPanel.add(cartaLabel);
+        if (ganador == null) {
+            mostrarMensaje("No hay un ganador claro.");
+            return;
         }
 
-        cartasPanel.revalidate();
-        cartasPanel.repaint();
+        String combinacion = EvaluadorMano.getUltimaCombinacion();
 
-        // Mostrar mensaje con el nombre y combinación
-        mostrarMensaje("¡Ganador: " + ganador.getNombre() + "!\nCombinación ganadora: " + combinacion);
+        StringBuilder manoGanadora = new StringBuilder();
+        for (Carta carta : ganador.getMano()) {
+            manoGanadora.append(carta.toString()).append(" ");
+        }
+
+        mostrarMensaje("¡Ganador: " + ganador.getNombre() + "!\n" +
+                "Combinación ganadora: " + combinacion + "\n" +
+                "Ganó $" + boteGanado + " en el bote.");
 
         int opcion = JOptionPane.showConfirmDialog(this, "¿Jugar otra ronda?");
         if (opcion == JOptionPane.YES_OPTION) {
@@ -317,21 +380,24 @@ public class InterfazJuego extends JFrame {
 
 
 
-
     private void nuevaRonda() {
         this.baraja = new Baraja();
         faseCambio = false;
         rondaTerminada = false;
         indiceJugador = 0;
+        bote = 0;
+        ronda = 1;
         apuestaMaxima = 0;
 
-        for (Jugador j : jugadores) {
-            j.reiniciarRonda();  // también reinicia su apuesta actual a 0
-            j.recibirCartas(baraja.repartir(5));
-        }
+        cincoCartasDraw.iniciarNuevaRonda();  // DELEGA la reinicialización
 
         mostrarInformacionJugador();
+        cambiarCartasBtn.setEnabled(false);
+        apostarBtn.setEnabled(true);
+        igualarBtn.setEnabled(true);
+        retirarseBtn.setEnabled(true);
     }
+
 
 
     private void mostrarMensaje(String msg) {

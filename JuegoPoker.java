@@ -9,11 +9,11 @@ public abstract class JuegoPoker {
         this.baraja = new Baraja();
     }
 
-    public abstract void jugar();
+    protected abstract void jugar();
 
     protected abstract void repartirCartas();
 
     protected abstract void gestionarApuestas();
 
-    protected abstract void evaluarGanador();
+    protected abstract Jugador evaluarGanador();
 }
