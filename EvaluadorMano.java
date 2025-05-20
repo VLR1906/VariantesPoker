@@ -1,13 +1,8 @@
 import java.util.*;
+import java.util.List;
 
 public class EvaluadorMano {
-    private static final Map<String, Integer> valorCarta = new HashMap<>();
-    private int base;
-    private int kicker;
-    int puntuacion = base + kicker;
-    private static String ultimaCombinacion = "";
-
-
+    public static final Map<String, Integer> valorCarta = new HashMap<>();
 
     static {
         valorCarta.put("2", 2);
@@ -30,23 +25,15 @@ public class EvaluadorMano {
         int mejorPuntaje = -1;
 
         for (Jugador j : jugadores) {
-            int puntuacion = evaluarMano(j.getMano()); // Usamos el método que ya tienes
+            int puntuacion = evaluarMano(j.getMano());
             if (puntuacion > mejorPuntaje) {
                 mejorPuntaje = puntuacion;
                 ganador = j;
             }
         }
 
-        if (ganador != null) {
-            System.out.println("El jugador " + ganador.getNombre() +
-                    " ganó la partida con: " + ultimaCombinacion);
-        }
-
         return ganador;
     }
-
-
-
 
     public static int evaluarMano(List<Carta> mano) {
         Map<String, Integer> valorCount = new HashMap<>();
@@ -75,46 +62,16 @@ public class EvaluadorMano {
         boolean trio = valorCount.containsValue(3);
         long pares = valorCount.values().stream().filter(v -> v == 2).count();
 
-        if (escalera && color) {
-            ultimaCombinacion = "escalera de color";
-            return 800 + valores.get(4);
-        }
-        if (poker) {
-            ultimaCombinacion = "póker";
-            return 700;
-        }
-        if (fullHouse) {
-            ultimaCombinacion = "full house";
-            return 600;
-        }
-        if (color) {
-            ultimaCombinacion = "color";
-            return 500;
-        }
-        if (escalera) {
-            ultimaCombinacion = "escalera";
-            return 400;
-        }
-        if (trio) {
-            ultimaCombinacion = "trío";
-            return 300;
-        }
-        if (pares == 2) {
-            ultimaCombinacion = "doble par";
-            return 200;
-        }
-        if (pares == 1) {
-            ultimaCombinacion = "un par";
-            return 100;
-        }
+        if (escalera && color) return 800 + valores.get(4); // Escalera de color
+        if (poker) return 700;
+        if (fullHouse) return 600;
+        if (color) return 500;
+        if (escalera) return 400;
+        if (trio) return 300;
+        if (pares == 2) return 200;
+        if (pares == 1) return 100;
 
-        ultimaCombinacion = "carta alta";
-        return valores.get(4);
-    }
-
-
-    public static String getUltimaCombinacion() {
-        return ultimaCombinacion;
+        return valores.get(4); // Carta alta
     }
 
     public static int evaluarMejorManoDeSiete(List<Carta> cartas) {
@@ -148,6 +105,34 @@ public class EvaluadorMano {
 
         return ganador;
     }
+    private static int obtenerValor(String valor) {
+        return valorCarta.getOrDefault(valor, 0);
+    }
+    public static int compararManosVisibles(List<Carta> mano1, List<Carta> mano2) {
+
+        List<Carta> copia1 = new ArrayList<>(mano1);
+        List<Carta> copia2 = new ArrayList<>(mano2);
+
+
+        copia1.sort((a, b) -> obtenerValor(b.getValor()) - obtenerValor(a.getValor()));
+        copia2.sort((a, b) -> obtenerValor(b.getValor()) - obtenerValor(a.getValor()));
+
+
+        for (int i = 0; i < Math.min(copia1.size(), copia2.size()); i++) {
+            int valor1 = obtenerValor(copia1.get(i).getValor());
+            int valor2 = obtenerValor(copia2.get(i).getValor());
+
+            if (valor1 > valor2) {
+                return 1;
+            } else if (valor1 < valor2) {
+                return -1;
+            }
+        }
+
+
+        return 0;
+    }
+
 
     private static List<List<Carta>> obtenerCombinacionesDe5(List<Carta> cartas) {
         List<List<Carta>> resultado = new ArrayList<>();
@@ -167,9 +152,5 @@ public class EvaluadorMano {
             actual.remove(actual.size() - 1);
         }
     }
-
-
-
-
 }
 
